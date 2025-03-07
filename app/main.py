@@ -1,7 +1,14 @@
 import os
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, CallbackQueryHandler, Application, ContextTypes
+from app.models import User
+from fastapi import Depends
 from dotenv import load_dotenv
+
+from app.database import get_session
+from app.dependency_injection import Depends, inject_dependencies
 load_dotenv()
 # Replace 'YOUR_API_TOKEN' with your actual bot token from BotFather
 API_TOKEN = os.getenv("API_TOKEN")
@@ -16,8 +23,14 @@ async def show_option_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text('Please choose an option:', reply_markup=reply_markup)
 
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+@inject_dependencies
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE, db: AsyncSession = Depends(get_session)) -> None:
+    print(update.effective_user)
+    
+    stmt = select(User)
+    result = await db.execute(stmt)
+    users = result.scalars().all()
+    print(users)
     await update.message.reply_text("Welcome to the Simple Telegram Bot!")
     await show_option_buttons(update, context)
 
