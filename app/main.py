@@ -25,8 +25,6 @@ async def show_option_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 @inject_dependencies
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE, db: AsyncSession = Depends(get_session)) -> None:
-    print(update.effective_user)
-    
     stmt = select(User)
     result = await db.execute(stmt)
     users = result.scalars().all()
